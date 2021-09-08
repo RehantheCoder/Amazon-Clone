@@ -11,7 +11,7 @@ import { loadStripe } from "@stripe/stripe-js";
 const stripePromise = loadStripe(process.env.stripe_public_key)
 import axios from 'axios'
 const Checkout = () => {
-  console.log(process.env.stripe_public_key)
+  // console.log(process.env.stripe_public_key)
   const items = useSelector(selectItems);
   const [session] = useSession();
   const total = useSelector(selectTotal);
@@ -22,8 +22,17 @@ const Checkout = () => {
       // Call the backend to create checkout session
       const checkoutSession = await axios.post('/api/create-checkout-session' , {
         items : items,
-        email : session.user.email
+        email : session?.user?.email || 'codinghub41@gmail.com'
       });
+
+      // Redirect User to Stripe Checkout
+      const result = await stripe.redirectToCheckout({
+        sessionId : checkoutSession.data.id
+      })
+
+      if(result.error){
+        alert(result.error.message)
+      }
   }
   return (
     <div className="bg-gray-100">
@@ -71,7 +80,7 @@ const Checkout = () => {
 
             <button role='link'
               onClick={createCheckoutSession}
-              disabled={!session}
+              // disabled={!session}
               className={`button mt-2 ${
                 !session &&
                 "from-gray-300 to-gray-500 border-gray-200 text-gray-300 cursor-not-allowed"
